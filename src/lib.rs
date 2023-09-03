@@ -68,11 +68,12 @@ where
         )?,
     )?;
 
-    table.set_metatable(Some(metatable));
-    table.set(
-        "content",
+    metatable.set(
+        "__tostring",
         lua.create_function(move |lua, ()| lua.to_value(&document.to_string()))?,
     )?;
+
+    table.set_metatable(Some(metatable));
 
     Ok(table)
 }
