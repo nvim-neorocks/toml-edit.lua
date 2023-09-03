@@ -1,0 +1,34 @@
+[package]
+name = "toml-edit"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+lua54 = ["mlua/lua54"]
+lua53 = ["mlua/lua53"]
+lua52 = ["mlua/lua52"]
+luajit = ["mlua/luajit"]
+lua51 = ["mlua/lua51"]
+
+[lib]
+name = "tomledit"
+crate-type = ["cdylib"]
+
+[dependencies]
+mlua = { version = "0.9.1", features = ["module", "serialize"] }
+serde = "1.0"
+toml_edit = "0.19.14"
+
+[target.x86_64-apple-darwin]
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]
+
+[target.aarch64-apple-darwin]
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]
