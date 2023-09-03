@@ -18,9 +18,6 @@ where
     let metatable = lua.create_table()?;
     let mt_clone = metatable.clone();
 
-    // TODO: Implement index and setindex metatables, make those metatables return more metatables
-    // which interact with the Document's Item structure and returns its data.
-
     metatable.set(
         "__index",
         lua.create_function(move |lua, payload: (mlua::Table, mlua::String)| {
