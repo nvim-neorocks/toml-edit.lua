@@ -1,7 +1,7 @@
 package = "toml-edit"
 version = "dev-1"
 source = {
-   url = "https://github.com/vhyrro/toml-edit.lua"
+   url = "git+https://github.com/vhyrro/toml-edit.lua"
 }
 description = {
    homepage = "https://github.com/vhyrro/toml-edit.lua",
