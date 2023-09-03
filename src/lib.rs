@@ -25,17 +25,30 @@ where
                 .0
                 .get::<_, AnyUserData>("__entry")?
                 .borrow::<toml_edit::Item>()?
-                .as_table()
+                .as_table_like()
                 .unwrap()
                 .get(payload.1.to_str()?)
                 .expect("Key not found!")
                 .clone();
             match item {
-                toml_edit::Item::Value(val) => match val {
+                toml_edit::Item::Value(ref val) => match val {
                     toml_edit::Value::String(str) => return lua.to_value(str.value()),
                     toml_edit::Value::Integer(int) => return lua.to_value(int.value()),
                     toml_edit::Value::Float(float) => return lua.to_value(float.value()),
                     toml_edit::Value::Boolean(bool) => return lua.to_value(bool.value()),
+                    // NOTE: This does not work as lists aren't "table-like" for whatever reason.
+                    // toml_edit::Value::Array(_) => {
+                    //     let ret = lua.create_table()?;
+                    //     ret.set("__entry", AnyUserData::wrap(item))?;
+                    //     ret.set_metatable(Some(mt_clone.clone()));
+                    //     return Ok(mlua::Value::Table(ret));
+                    // }
+                    toml_edit::Value::InlineTable(_) => {
+                        let ret = lua.create_table()?;
+                        ret.set("__entry", AnyUserData::wrap(item))?;
+                        ret.set_metatable(Some(mt_clone.clone()));
+                        return Ok(mlua::Value::Table(ret));
+                    }
                     _ => unimplemented!(),
                 },
                 toml_edit::Item::Table(_) => {
