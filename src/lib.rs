@@ -42,22 +42,23 @@ where
             };
 
             match item {
+                toml_edit::Item::None => Ok(mlua::Value::Nil),
                 toml_edit::Item::Value(ref val) => match val {
-                    toml_edit::Value::String(str) => return lua.to_value(str.value()),
-                    toml_edit::Value::Integer(int) => return lua.to_value(int.value()),
-                    toml_edit::Value::Float(float) => return lua.to_value(float.value()),
-                    toml_edit::Value::Boolean(bool) => return lua.to_value(bool.value()),
+                    toml_edit::Value::String(str) => lua.to_value(str.value()),
+                    toml_edit::Value::Integer(int) => lua.to_value(int.value()),
+                    toml_edit::Value::Float(float) => lua.to_value(float.value()),
+                    toml_edit::Value::Boolean(bool) => lua.to_value(bool.value()),
                     toml_edit::Value::Array(_) => {
                         let ret = lua.create_table()?;
                         ret.set("__entry", AnyUserData::wrap(item))?;
                         ret.set_metatable(Some(mt_clone.clone()));
-                        return Ok(mlua::Value::Table(ret));
+                        Ok(mlua::Value::Table(ret))
                     }
                     toml_edit::Value::InlineTable(_) => {
                         let ret = lua.create_table()?;
                         ret.set("__entry", AnyUserData::wrap(item))?;
                         ret.set_metatable(Some(mt_clone.clone()));
-                        return Ok(mlua::Value::Table(ret));
+                        Ok(mlua::Value::Table(ret))
                     }
                     _ => unimplemented!(),
                 },
@@ -65,10 +66,10 @@ where
                     let ret = lua.create_table()?;
                     ret.set("__entry", AnyUserData::wrap(item))?;
                     ret.set_metatable(Some(mt_clone.clone()));
-                    return Ok(mlua::Value::Table(ret));
+                    Ok(mlua::Value::Table(ret))
                 }
-                _ => unimplemented!(),
-            };
+                toml_edit::Item::ArrayOfTables(_) => unimplemented!(),
+            }
         })?,
     )?;
 
