@@ -21,28 +21,38 @@ where
     metatable.set(
         "__index",
         lua.create_function(move |lua, payload: (mlua::Table, mlua::String)| {
-            let item = payload
-                .0
-                .get::<_, AnyUserData>("__entry")?
-                .borrow::<toml_edit::Item>()?
-                .as_table_like()
-                .unwrap()
-                .get(payload.1.to_str()?)
-                .expect("Key not found!")
-                .clone();
+            let item = payload.0.get::<_, AnyUserData>("__entry")?;
+            let item = item.borrow::<toml_edit::Item>()?;
+
+            let item = if item.is_table_like() {
+                item.as_table_like()
+                    .unwrap()
+                    .get(payload.1.to_str()?)
+                    .expect("Key not found!")
+                    .to_owned()
+            } else {
+                toml_edit::Item::Value(
+                    item.as_array()
+                        .unwrap()
+                        // Subtract one to account for one-based indexing.
+                        .get(payload.1.to_str()?.parse::<usize>().unwrap() - 1)
+                        .expect("Index out of bounds!")
+                        .to_owned(),
+                )
+            };
+
             match item {
                 toml_edit::Item::Value(ref val) => match val {
                     toml_edit::Value::String(str) => return lua.to_value(str.value()),
                     toml_edit::Value::Integer(int) => return lua.to_value(int.value()),
                     toml_edit::Value::Float(float) => return lua.to_value(float.value()),
                     toml_edit::Value::Boolean(bool) => return lua.to_value(bool.value()),
-                    // NOTE: This does not work as lists aren't "table-like" for whatever reason.
-                    // toml_edit::Value::Array(_) => {
-                    //     let ret = lua.create_table()?;
-                    //     ret.set("__entry", AnyUserData::wrap(item))?;
-                    //     ret.set_metatable(Some(mt_clone.clone()));
-                    //     return Ok(mlua::Value::Table(ret));
-                    // }
+                    toml_edit::Value::Array(_) => {
+                        let ret = lua.create_table()?;
+                        ret.set("__entry", AnyUserData::wrap(item))?;
+                        ret.set_metatable(Some(mt_clone.clone()));
+                        return Ok(mlua::Value::Table(ret));
+                    }
                     toml_edit::Value::InlineTable(_) => {
                         let ret = lua.create_table()?;
                         ret.set("__entry", AnyUserData::wrap(item))?;
