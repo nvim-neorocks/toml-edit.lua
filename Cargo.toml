@@ -13,7 +13,7 @@ luajit = ["mlua/luajit"]
 lua51 = ["mlua/lua51"]
 
 [lib]
-name = "tomledit"
+name = "toml_edit"
 crate-type = ["cdylib"]
 
 [dependencies]
