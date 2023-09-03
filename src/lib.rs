@@ -28,47 +28,48 @@ where
                 item.as_table_like()
                     .unwrap()
                     .get(payload.1.to_str()?)
-                    .expect("Key not found!")
-                    .to_owned()
+                    .map(ToOwned::to_owned)
             } else {
-                toml_edit::Item::Value(
-                    item.as_array()
-                        .unwrap()
-                        // Subtract one to account for one-based indexing.
-                        .get(payload.1.to_str()?.parse::<usize>().unwrap() - 1)
-                        .expect("Index out of bounds!")
-                        .to_owned(),
-                )
+                item.as_array()
+                    .unwrap()
+                    // Subtract one to account for one-based indexing.
+                    .get(payload.1.to_str()?.parse::<usize>().unwrap() - 1)
+                    .map(ToOwned::to_owned)
+                    .map(toml_edit::Item::Value)
             };
 
-            match item {
-                toml_edit::Item::None => Ok(mlua::Value::Nil),
-                toml_edit::Item::Value(ref val) => match val {
-                    toml_edit::Value::String(str) => lua.to_value(str.value()),
-                    toml_edit::Value::Integer(int) => lua.to_value(int.value()),
-                    toml_edit::Value::Float(float) => lua.to_value(float.value()),
-                    toml_edit::Value::Boolean(bool) => lua.to_value(bool.value()),
-                    toml_edit::Value::Array(_) => {
+            if let Some(value) = item {
+                match value {
+                    toml_edit::Item::None => Ok(mlua::Value::Nil),
+                    toml_edit::Item::Value(ref val) => match val {
+                        toml_edit::Value::String(str) => lua.to_value(str.value()),
+                        toml_edit::Value::Integer(int) => lua.to_value(int.value()),
+                        toml_edit::Value::Float(float) => lua.to_value(float.value()),
+                        toml_edit::Value::Boolean(bool) => lua.to_value(bool.value()),
+                        toml_edit::Value::Array(_) => {
+                            let ret = lua.create_table()?;
+                            ret.set("__entry", AnyUserData::wrap(value))?;
+                            ret.set_metatable(Some(mt_clone.clone()));
+                            Ok(mlua::Value::Table(ret))
+                        }
+                        toml_edit::Value::InlineTable(_) => {
+                            let ret = lua.create_table()?;
+                            ret.set("__entry", AnyUserData::wrap(value))?;
+                            ret.set_metatable(Some(mt_clone.clone()));
+                            Ok(mlua::Value::Table(ret))
+                        }
+                        _ => unimplemented!(),
+                    },
+                    toml_edit::Item::Table(_) => {
                         let ret = lua.create_table()?;
-                        ret.set("__entry", AnyUserData::wrap(item))?;
+                        ret.set("__entry", AnyUserData::wrap(value))?;
                         ret.set_metatable(Some(mt_clone.clone()));
                         Ok(mlua::Value::Table(ret))
                     }
-                    toml_edit::Value::InlineTable(_) => {
-                        let ret = lua.create_table()?;
-                        ret.set("__entry", AnyUserData::wrap(item))?;
-                        ret.set_metatable(Some(mt_clone.clone()));
-                        Ok(mlua::Value::Table(ret))
-                    }
-                    _ => unimplemented!(),
-                },
-                toml_edit::Item::Table(_) => {
-                    let ret = lua.create_table()?;
-                    ret.set("__entry", AnyUserData::wrap(item))?;
-                    ret.set_metatable(Some(mt_clone.clone()));
-                    Ok(mlua::Value::Table(ret))
+                    toml_edit::Item::ArrayOfTables(_) => unimplemented!(),
                 }
-                toml_edit::Item::ArrayOfTables(_) => unimplemented!(),
+            } else {
+                Ok(mlua::Value::Nil)
             }
         })?,
     )?;
