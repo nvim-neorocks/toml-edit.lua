@@ -1,90 +1,101 @@
 use mlua::{AnyUserData, ExternalError, Lua, LuaSerdeExt, Result};
+use std::cell::RefCell;
+use std::rc::Rc;
 use toml_edit::Document;
 
 // TODO: Better error messages
 
-pub fn parse<'lua>(lua: &'lua Lua, str: mlua::String<'lua>) -> Result<mlua::Table<'lua>>
+pub fn parse<'lua>(lua: &'lua Lua, document: Rc<RefCell<Document>>) -> Result<mlua::Table<'lua>>
 where
     'lua: 'static,
 {
-    let document: Document = match str.to_string_lossy().parse() {
-        Ok(document) => document,
-        Err(err) => return Err(err.into_lua_err()),
-    };
-
     let table = lua.create_table()?;
-    table.set("__entry", AnyUserData::wrap(document.as_item().clone()))?;
+    table.set("__entry", AnyUserData::wrap(Rc::clone(&document)))?;
+    table.set("__path", Vec::<String>::new())?;
 
     let metatable = lua.create_table()?;
     let mt_clone = metatable.clone();
 
+    let index_document_copy = Rc::clone(&document);
     metatable.set(
         "__index",
-        lua.create_function(move |lua, payload: (mlua::Table, mlua::String)| {
-            let item = payload.0.get::<_, AnyUserData>("__entry")?;
-            let item = item.borrow::<toml_edit::Item>()?;
+        lua.create_function(move |lua, (tbl, key): (mlua::Table, mlua::String)| {
+            let mut path = tbl.get::<_, Vec<String>>("__path")?;
+            path.push(key.to_str()?.to_string());
 
-            let item = if item.is_table_like() {
-                item.as_table_like()
-                    .unwrap()
-                    .get(payload.1.to_str()?)
-                    .map(ToOwned::to_owned)
-            } else {
-                item.as_array()
-                    .unwrap()
-                    // Subtract one to account for one-based indexing.
-                    .get(payload.1.to_str()?.parse::<usize>().unwrap() - 1)
-                    .map(ToOwned::to_owned)
-                    .map(toml_edit::Item::Value)
-            };
+            // TODO: Don't error on an invalid path
+            let binding = index_document_copy.borrow();
+            let entry = path
+                .clone()
+                .into_iter()
+                .fold(binding.as_item(), |entry, next_key| {
+                    entry
+                        .as_table()
+                        .expect("Unwrapping to table failed")
+                        .get(next_key.as_str())
+                        .unwrap()
+                });
 
-            if let Some(value) = item {
-                match value {
-                    toml_edit::Item::None => Ok(mlua::Value::Nil),
-                    toml_edit::Item::Value(ref val) => match val {
-                        toml_edit::Value::String(str) => lua.to_value(str.value()),
-                        toml_edit::Value::Integer(int) => lua.to_value(int.value()),
-                        toml_edit::Value::Float(float) => lua.to_value(float.value()),
-                        toml_edit::Value::Boolean(bool) => lua.to_value(bool.value()),
-                        toml_edit::Value::Array(_) => {
-                            let ret = lua.create_table()?;
-                            ret.set("__entry", AnyUserData::wrap(value))?;
-                            ret.set_metatable(Some(mt_clone.clone()));
-                            Ok(mlua::Value::Table(ret))
-                        }
-                        toml_edit::Value::InlineTable(_) => {
-                            let ret = lua.create_table()?;
-                            ret.set("__entry", AnyUserData::wrap(value))?;
-                            ret.set_metatable(Some(mt_clone.clone()));
-                            Ok(mlua::Value::Table(ret))
-                        }
-                        _ => unimplemented!(),
-                    },
-                    toml_edit::Item::Table(_) => {
-                        let ret = lua.create_table()?;
-                        ret.set("__entry", AnyUserData::wrap(value))?;
-                        ret.set_metatable(Some(mt_clone.clone()));
-                        Ok(mlua::Value::Table(ret))
-                    }
-                    toml_edit::Item::ArrayOfTables(_) => unimplemented!(),
+            match entry {
+                toml_edit::Item::Table(_) => {
+                    let table = lua.create_table()?;
+                    table.set("__path", path)?;
+                    table.set_metatable(Some(mt_clone.clone()));
+
+                    Ok(mlua::Value::Table(table))
                 }
-            } else {
-                Ok(mlua::Value::Nil)
+                toml_edit::Item::Value(value) => match value {
+                    toml_edit::Value::String(str) => lua.to_value(&str.value()),
+                    toml_edit::Value::Integer(int) => lua.to_value(&int.value()),
+                    toml_edit::Value::Float(float) => lua.to_value(&float.value()),
+                    toml_edit::Value::Boolean(bool) => lua.to_value(&bool.value()),
+                    _ => todo!(),
+                },
+                _ => todo!(),
             }
         })?,
     )?;
 
+    let newindex_document_copy = Rc::clone(&document);
     metatable.set(
         "__newindex",
         lua.create_function(
-            move |_, payload: (mlua::Table, mlua::String, mlua::Value)| {
-                let binding: &mut AnyUserData = &mut payload.0.get::<_, AnyUserData>("__entry")?;
-                let mut item = binding.borrow_mut::<toml_edit::Item>()?;
-                let item: &mut toml_edit::Item =
-                    item.get_mut(payload.1.to_str()?).expect("Key not found!");
-                *item = toml_edit::Item::Value(toml_edit::Value::String(
-                    toml_edit::Formatted::new("hello".to_string()),
-                ));
+            move |_, (tbl, key, value): (mlua::Table, mlua::String, mlua::Value)| {
+                let mut path = tbl.get::<_, Vec<String>>("__path")?;
+                path.push(key.to_str()?.to_string());
+
+                // TODO: Don't error on an invalid path
+                let mut binding = newindex_document_copy.borrow_mut();
+                let entry: &mut toml_edit::Item =
+                    path.clone()
+                        .into_iter()
+                        .fold(binding.as_item_mut(), |entry, next_key| {
+                            entry
+                                .as_table_mut()
+                                .expect("Unwrapping to table failed")
+                                .get_mut(next_key.as_str())
+                                .unwrap()
+                        });
+                *entry = match value {
+                    mlua::Value::Nil => toml_edit::Item::None,
+                    mlua::Value::String(str) => toml_edit::value(str.to_str()?.to_string()),
+                    mlua::Value::Number(number) => toml_edit::value(
+                        lua.from_value::<mlua::Number>(mlua::Value::Number(number))?,
+                    ),
+                    mlua::Value::Integer(int) => toml_edit::value(
+                        lua.from_value::<mlua::Integer>(mlua::Value::Integer(int))?,
+                    ),
+                    mlua::Value::Boolean(bool) => toml_edit::value(bool),
+                    mlua::Value::Table(table) => unimplemented!(),
+                    _ => {
+                        return Err(mlua::Error::MetaMethodTypeError {
+                            method: "__newindex".into(),
+                            type_name: value.type_name(),
+                            message: Some("provided type is not allowed in TOML document".into()),
+                        })
+                    }
+                };
+
                 Ok(())
             },
         )?,
@@ -92,7 +103,7 @@ where
 
     metatable.set(
         "__tostring",
-        lua.create_function(move |lua, ()| lua.to_value(&document.to_string()))?,
+        lua.create_function(move |lua, ()| lua.to_value(&document.borrow().to_string()))?,
     )?;
 
     table.set_metatable(Some(metatable));
@@ -103,6 +114,16 @@ where
 #[mlua::lua_module]
 pub fn toml_edit(lua: &'static Lua) -> Result<mlua::Table> {
     let table = lua.create_table()?;
-    table.set("parse", lua.create_function(parse)?)?;
+    table.set(
+        "parse",
+        lua.create_function(|lua, str: mlua::String| {
+            let document: Document = match str.to_string_lossy().parse() {
+                Ok(document) => document,
+                Err(err) => return Err(err.into_lua_err()),
+            };
+
+            parse(lua, RefCell::new(document).into())
+        })?,
+    )?;
     Ok(table)
 }
