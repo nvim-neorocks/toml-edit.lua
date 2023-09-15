@@ -1,4 +1,4 @@
-use mlua::{AnyUserData, ExternalError, Lua, LuaSerdeExt, Result};
+use mlua::{ExternalError, Lua, LuaSerdeExt, Result};
 use std::cell::RefCell;
 use std::rc::Rc;
 use toml_edit::Document;
@@ -10,7 +10,6 @@ where
     'lua: 'static,
 {
     let table = lua.create_table()?;
-    table.set("__entry", AnyUserData::wrap(Rc::clone(&document)))?;
     table.set("__path", Vec::<String>::new())?;
 
     let metatable = lua.create_table()?;
@@ -25,16 +24,30 @@ where
 
             // TODO: Don't error on an invalid path
             let binding = index_document_copy.borrow();
-            let entry = path
-                .clone()
-                .into_iter()
-                .fold(binding.as_item(), |entry, next_key| {
+            let entry = path.clone().into_iter().try_fold(
+                binding.as_item(),
+                |entry, next_key: String| {
                     entry
                         .as_table()
-                        .expect("Unwrapping to table failed")
+                        .ok_or_else(|| {
+                            mlua::Error::RuntimeError(
+                                "attempt to index '".to_string()
+                                    + next_key.as_str()
+                                    + "' (a "
+                                    + entry.type_name()
+                                    + " value)",
+                            )
+                        })?
                         .get(next_key.as_str())
-                        .unwrap()
-                });
+                        .ok_or_else(|| {
+                            mlua::Error::RuntimeError(
+                                "attempt to index '".to_string()
+                                    + next_key.as_str()
+                                    + "' (a nil value)",
+                            )
+                        })
+                },
+            )?;
 
             match entry {
                 toml_edit::Item::Table(_) => {
@@ -76,6 +89,7 @@ where
                                 .get_mut(next_key.as_str())
                                 .unwrap()
                         });
+
                 *entry = match value {
                     mlua::Value::Nil => toml_edit::Item::None,
                     mlua::Value::String(str) => toml_edit::value(str.to_str()?.to_string()),
