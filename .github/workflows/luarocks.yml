@@ -1,9 +1,8 @@
 name: LuaRocks release
 
 on:
-  push:
-    tags: # Will upload to luarocks.org when a tag is pushed
-      - "*"
+  release:
+    types: [published]
   pull_request: # Will test a local install without uploading to luarocks.org
 
 jobs:
