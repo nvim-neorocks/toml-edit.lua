@@ -22,7 +22,6 @@ where
             let mut path = tbl.get::<_, Vec<String>>("__path")?;
             path.push(key.to_str()?.to_string());
 
-            // TODO: Don't error on an invalid path
             let binding = index_document_copy.borrow();
             let entry = path.clone().into_iter().try_fold(
                 binding.as_item(),
@@ -100,7 +99,7 @@ where
                         lua.from_value::<mlua::Integer>(mlua::Value::Integer(int))?,
                     ),
                     mlua::Value::Boolean(bool) => toml_edit::value(bool),
-                    mlua::Value::Table(table) => unimplemented!(),
+                    mlua::Value::Table(table) => todo!(),
                     _ => {
                         return Err(mlua::Error::MetaMethodTypeError {
                             method: "__newindex".into(),
