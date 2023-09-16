@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.0...v0.1.1) (2023-09-16)
+
+
+### Bug Fixes
+
+* `unimplemented()` -&gt; `todo()` ([a40bf6d](https://github.com/vhyrro/toml-edit.lua/commit/a40bf6de4d57a017f620fd6c163227dacc75b4c6))
+
 ## 0.1.0 (2023-09-16)
 
 
