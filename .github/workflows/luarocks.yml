@@ -2,7 +2,7 @@ name: LuaRocks release
 
 on:
   release:
-    types: [published]
+    types: [published, created]
   pull_request: # Will test a local install without uploading to luarocks.org
 
 jobs:
