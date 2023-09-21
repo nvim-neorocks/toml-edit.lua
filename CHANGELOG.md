@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.2...v0.1.3) (2023-09-21)
+
+
+### Bug Fixes
+
+* add better error messages in __setindex, fix CI issues ([efe2ce1](https://github.com/vhyrro/toml-edit.lua/commit/efe2ce154dd4ed35e00a15a8e2cf0edd7406642b))
+
 ## [0.1.2](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.1...v0.1.2) (2023-09-21)
 
 
