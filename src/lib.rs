@@ -78,16 +78,32 @@ where
 
                 // TODO: Don't error on an invalid path
                 let mut binding = newindex_document_copy.borrow_mut();
-                let entry: &mut toml_edit::Item =
-                    path.clone()
-                        .into_iter()
-                        .fold(binding.as_item_mut(), |entry, next_key| {
-                            entry
-                                .as_table_mut()
-                                .expect("Unwrapping to table failed")
-                                .get_mut(next_key.as_str())
-                                .unwrap()
-                        });
+                let entry: &mut toml_edit::Item = path.clone().into_iter().try_fold(
+                    binding.as_item_mut(),
+                    |entry, next_key| {
+                        let value_type = entry.type_name();
+
+                        entry
+                            .as_table_mut()
+                            .ok_or_else(|| {
+                                mlua::Error::RuntimeError(
+                                    "attempt to index '".to_string()
+                                        + next_key.as_str()
+                                        + "' (a "
+                                        + value_type
+                                        + " value)",
+                                )
+                            })?
+                            .get_mut(next_key.as_str())
+                            .ok_or_else(|| {
+                                mlua::Error::RuntimeError(
+                                    "attempt to index '".to_string()
+                                        + next_key.as_str()
+                                        + "' (a nil value)",
+                                )
+                            })
+                    },
+                )?;
 
                 *entry = match value {
                     mlua::Value::Nil => toml_edit::Item::None,
