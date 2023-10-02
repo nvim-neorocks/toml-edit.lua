@@ -26,25 +26,21 @@ where
             let entry = path.clone().into_iter().try_fold(
                 binding.as_item(),
                 |entry, next_key: String| {
-                    entry
-                        .as_table()
-                        .ok_or_else(|| {
-                            mlua::Error::RuntimeError(
-                                "attempt to index '".to_string()
-                                    + next_key.as_str()
-                                    + "' (a "
-                                    + entry.type_name()
-                                    + " value)",
-                            )
-                        })?
-                        .get(next_key.as_str())
-                        .ok_or_else(|| {
-                            mlua::Error::RuntimeError(
-                                "attempt to index '".to_string()
-                                    + next_key.as_str()
-                                    + "' (a nil value)",
-                            )
-                        })
+                    Ok::<_, mlua::Error>(
+                        entry
+                            .as_table()
+                            .ok_or_else(|| {
+                                mlua::Error::RuntimeError(
+                                    "attempt to index '".to_string()
+                                        + next_key.as_str()
+                                        + "' (a "
+                                        + entry.type_name()
+                                        + " value)",
+                                )
+                            })?
+                            .get(next_key.as_str())
+                            .unwrap_or_else(|| &toml_edit::Item::None),
+                    )
                 },
             )?;
 
@@ -63,6 +59,7 @@ where
                     toml_edit::Value::Boolean(bool) => lua.to_value(&bool.value()),
                     _ => todo!(),
                 },
+                toml_edit::Item::None => Ok(mlua::Value::Nil),
                 _ => todo!(),
             }
         })?,
@@ -76,34 +73,26 @@ where
                 let mut path = tbl.get::<_, Vec<String>>("__path")?;
                 path.push(key.to_str()?.to_string());
 
-                // TODO: Don't error on an invalid path
                 let mut binding = newindex_document_copy.borrow_mut();
-                let entry: &mut toml_edit::Item = path.clone().into_iter().try_fold(
-                    binding.as_item_mut(),
-                    |entry, next_key| {
-                        let value_type = entry.type_name();
+                let entry: &mut toml_edit::Item =
+                    path.clone()
+                        .into_iter()
+                        .fold(binding.as_item_mut(), |entry, next_key| {
+                            let value_type = entry.type_name();
 
-                        entry
-                            .as_table_mut()
-                            .ok_or_else(|| {
-                                mlua::Error::RuntimeError(
-                                    "attempt to index '".to_string()
-                                        + next_key.as_str()
-                                        + "' (a "
-                                        + value_type
-                                        + " value)",
-                                )
-                            })?
-                            .get_mut(next_key.as_str())
-                            .ok_or_else(|| {
-                                mlua::Error::RuntimeError(
-                                    "attempt to index '".to_string()
-                                        + next_key.as_str()
-                                        + "' (a nil value)",
-                                )
-                            })
-                    },
-                )?;
+                            if !entry.is_table() {
+                                *entry = toml_edit::Item::Table(toml_edit::Table::default());
+                            };
+
+                            let entry = entry.as_table_mut().unwrap();
+
+                            if entry.get_mut(next_key.as_str()).is_none() {
+                                entry[next_key.as_str()] =
+                                    toml_edit::Item::Table(toml_edit::Table::default());
+                            }
+
+                            entry.get_mut(next_key.as_str()).unwrap()
+                        });
 
                 *entry = match value {
                     mlua::Value::Nil => toml_edit::Item::None,
@@ -115,7 +104,18 @@ where
                         lua.from_value::<mlua::Integer>(mlua::Value::Integer(int))?,
                     ),
                     mlua::Value::Boolean(bool) => toml_edit::value(bool),
-                    mlua::Value::Table(table) => todo!(),
+                    mlua::Value::Table(table) => {
+                        // Update state data within Lua
+                        // for pair in tbl.pairs() {
+                        //     let (key, value): (mlua::Value, mlua::Value) = pair?;
+
+                        //     table.set(key, value)?;
+                        // }
+
+                        // TODO: The previous invocations just updated everything, so make this now
+                        // return a table that allows access to those values.
+                        toml_edit::Item::Table(toml_edit::Table::default())
+                    }
                     _ => {
                         return Err(mlua::Error::MetaMethodTypeError {
                             method: "__newindex".into(),
