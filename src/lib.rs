@@ -78,8 +78,6 @@ where
                     path.clone()
                         .into_iter()
                         .fold(binding.as_item_mut(), |entry, next_key| {
-                            let value_type = entry.type_name();
-
                             if !entry.is_table() {
                                 *entry = toml_edit::Item::Table(toml_edit::Table::default());
                             };
@@ -104,7 +102,7 @@ where
                         lua.from_value::<mlua::Integer>(mlua::Value::Integer(int))?,
                     ),
                     mlua::Value::Boolean(bool) => toml_edit::value(bool),
-                    mlua::Value::Table(table) => {
+                    mlua::Value::Table(_table) => {
                         // Update state data within Lua
                         // for pair in tbl.pairs() {
                         //     let (key, value): (mlua::Value, mlua::Value) = pair?;
