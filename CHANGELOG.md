@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.3...v0.1.4) (2023-11-23)
+
+
+### Bug Fixes
+
+* fixes related to `nil` indexing and table initialization ([f6efdab](https://github.com/vhyrro/toml-edit.lua/commit/f6efdab4ca6fab276f172060971781dc42a94f2d))
+* remove warnings from code ([04a2627](https://github.com/vhyrro/toml-edit.lua/commit/04a262731a7e8676bcb0bc6a5ff4156dffe6a571))
+
 ## [0.1.3](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.2...v0.1.3) (2023-09-21)
 
 
