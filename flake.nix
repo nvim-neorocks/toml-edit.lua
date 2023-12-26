@@ -41,6 +41,7 @@
           src = self;
           hooks = {
             alejandra.enable = true;
+            stylua.enable = true;
             rustfmt.enable = true;
           };
         };
@@ -57,6 +58,7 @@
             ++ (with pre-commit-hooks.packages.${system}; [
               alejandra
               rustfmt
+              stylua
             ])
             ++ oa.buildInputs;
 
@@ -64,8 +66,6 @@
             ${oa.shellHook}
             ${self.checks.${system}.pre-commit-check.shellHook}
           '';
-
-          doCheck = false;
         });
 
         checks = {

@@ -1,5 +1,6 @@
 package = "toml-edit"
 version = "dev-1"
+rockspec_format = "3.0"
 source = {
    url = "git+https://github.com/vhyrro/toml-edit.lua"
 }
@@ -9,6 +10,11 @@ description = {
 }
 
 dependencies = {
+    "lua >= 5.1",
+    "luarocks-build-rust-mlua",
+}
+
+test_dependencies = {
     "lua >= 5.1",
     "luarocks-build-rust-mlua",
 }
