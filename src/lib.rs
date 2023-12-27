@@ -28,7 +28,7 @@ where
                 |entry, next_key: String| {
                     Ok::<_, mlua::Error>(
                         entry
-                            .as_table()
+                            .as_table_like()
                             .ok_or_else(|| {
                                 mlua::Error::RuntimeError(
                                     "attempt to index '".to_string()
@@ -57,10 +57,23 @@ where
                     toml_edit::Value::Integer(int) => lua.to_value(&int.value()),
                     toml_edit::Value::Float(float) => lua.to_value(&float.value()),
                     toml_edit::Value::Boolean(bool) => lua.to_value(&bool.value()),
-                    _ => todo!(),
+                    toml_edit::Value::InlineTable(_) => {
+                        let table = lua.create_table()?;
+                        table.set("__path", path)?;
+                        table.set_metatable(Some(mt_clone.clone()));
+                        Ok(mlua::Value::Table(table))
+                    }
+                    _ => Err(mlua::Error::RuntimeError(format!(
+                        "toml-edit: cannot parse {}: {} yet",
+                        value.type_name(),
+                        value
+                    ))),
                 },
                 toml_edit::Item::None => Ok(mlua::Value::Nil),
-                _ => todo!(),
+                item => Err(mlua::Error::RuntimeError(format!(
+                    "toml-edit: cannot parse: '{}'",
+                    item
+                ))),
             }
         })?,
     )?;
@@ -78,15 +91,17 @@ where
                     path.clone()
                         .into_iter()
                         .fold(binding.as_item_mut(), |entry, next_key| {
-                            if !entry.is_table() {
+                            if !entry.is_table_like() {
                                 *entry = toml_edit::Item::Table(toml_edit::Table::default());
                             };
 
-                            let entry = entry.as_table_mut().unwrap();
+                            let entry = entry.as_table_like_mut().unwrap();
 
                             if entry.get_mut(next_key.as_str()).is_none() {
-                                entry[next_key.as_str()] =
-                                    toml_edit::Item::Table(toml_edit::Table::default());
+                                entry.insert(
+                                    next_key.as_str(),
+                                    toml_edit::Item::Table(toml_edit::Table::default()),
+                                );
                             }
 
                             entry.get_mut(next_key.as_str()).unwrap()
