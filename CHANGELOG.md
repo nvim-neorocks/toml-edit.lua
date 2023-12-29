@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.4...v0.1.5) (2023-12-29)
+
+
+### Bug Fixes
+
+* support inline tables ([f673182](https://github.com/vhyrro/toml-edit.lua/commit/f6731821282dbead2425215a82f3adec42fa71ac))
+
 ## [0.1.4](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.3...v0.1.4) (2023-11-23)
 
 
