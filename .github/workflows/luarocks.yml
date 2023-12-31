@@ -19,3 +19,9 @@ jobs:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         with:
           test_interpreters: ""
+          summary: "TOML Parser + Formatting and Comment-Preserving Editor"
+          detailed_summary: |
+            `toml-edit` is a library to parse and edit `.toml` files as if they were lua tables, all while preserving formatting and comments.
+            Based on rust's `toml-edit`.
+          dependecies: |
+            luarocks-build-rust-mlua
