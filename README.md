@@ -36,9 +36,5 @@ luarocks make --tree=luarocks
 luarocks test
 ```
 
-> [!NOTE]
->
-> You may need to `luarocks install --local luarocks-build-rust-mlua`.
-
 [luarocks-shield]: https://img.shields.io/luarocks/v/neorg/toml-edit?logo=lua&color=purple&style=for-the-badge
 [luarocks-url]: https://luarocks.org/modules/neorg/toml-edit

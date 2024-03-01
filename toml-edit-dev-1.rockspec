@@ -11,17 +11,16 @@ description = {
 
 dependencies = {
     "lua >= 5.1",
-    "luarocks-build-rust-mlua",
 }
 
 test_dependencies = {
     "lua >= 5.1",
-    "luarocks-build-rust-mlua",
 }
 
 build = {
-    type = "rust-mlua",
-    modules = {
-        "toml_edit"
+    type = "make",
+    install_variables = {
+      INST_PREFIX='$(PREFIX)',
+      INST_LIBDIR='$(LIBDIR)',
     },
 }
