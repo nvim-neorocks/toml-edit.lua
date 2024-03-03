@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.5...v0.2.0) (2024-03-03)
+
+
+### Features
+
+* don't depend on luarocks-build-rust-mlua ([0df05df](https://github.com/vhyrro/toml-edit.lua/commit/0df05df3ee337df006f6f040db81ed1cf49ceee6))
+
 ## [0.1.5](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.4...v0.1.5) (2023-12-29)
 
 
