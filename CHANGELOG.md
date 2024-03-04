@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/vhyrro/toml-edit.lua/compare/v0.2.0...v0.2.1) (2024-03-04)
+
+
+### Bug Fixes
+
+* luarocks.yml workflow lacking metadata ([c10f5c8](https://github.com/vhyrro/toml-edit.lua/commit/c10f5c89ecb9b6b75511cf90c7c20181f01a3a00))
+* make luarocks workflow automatic ([d3feb57](https://github.com/vhyrro/toml-edit.lua/commit/d3feb57fa12c0e76aa1ba49fe8541d5b9130faf2))
+
 ## [0.2.0](https://github.com/vhyrro/toml-edit.lua/compare/v0.1.5...v0.2.0) (2024-03-03)
 
 
