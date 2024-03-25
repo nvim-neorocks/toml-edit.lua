@@ -1,11 +1,11 @@
 use mlua::{ExternalError, Lua, LuaSerdeExt, Result};
 use std::cell::RefCell;
 use std::rc::Rc;
-use toml_edit::Document;
+use toml_edit::DocumentMut;
 
 // TODO: Better error messages
 
-pub fn parse<'lua>(lua: &'lua Lua, document: Rc<RefCell<Document>>) -> Result<mlua::Table<'lua>>
+pub fn parse<'lua>(lua: &'lua Lua, document: Rc<RefCell<DocumentMut>>) -> Result<mlua::Table<'lua>>
 where
     'lua: 'static,
 {
@@ -159,12 +159,23 @@ pub fn toml_edit(lua: &'static Lua) -> Result<mlua::Table> {
     table.set(
         "parse",
         lua.create_function(|lua, str: mlua::String| {
-            let document: Document = match str.to_string_lossy().parse() {
+            let document: DocumentMut = match str.to_string_lossy().parse() {
                 Ok(document) => document,
                 Err(err) => return Err(err.into_lua_err()),
             };
 
             parse(lua, RefCell::new(document).into())
+        })?,
+    )?;
+    table.set(
+        "parse_as_tbl",
+        lua.create_function(|lua, str: mlua::String| {
+            let tbl: toml::Table = match str.to_string_lossy().parse() {
+                Ok(tbl) => tbl,
+                Err(err) => return Err(err.into_lua_err()),
+            };
+
+            lua.to_value(&tbl)
         })?,
     )?;
     Ok(table)

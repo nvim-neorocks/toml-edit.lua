@@ -1,4 +1,4 @@
-describe("toml-edit", function()
+describe("parse", function()
     local toml_edit = require("toml_edit")
     it("Can read from key", function()
         local toml_content = [[

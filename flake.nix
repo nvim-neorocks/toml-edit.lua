@@ -54,13 +54,16 @@
           buildInputs =
             (with pkgs; [
               rust-analyzer
+              rustc
             ])
             ++ (with pre-commit-hooks.packages.${system}; [
               alejandra
               rustfmt
               stylua
+              clippy
             ])
-            ++ oa.buildInputs;
+            ++ oa.buildInputs
+            ++ oa.nativeBuildInputs;
 
           shellHook = ''
             ${oa.shellHook}
