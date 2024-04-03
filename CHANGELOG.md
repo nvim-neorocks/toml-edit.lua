@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/vhyrro/toml-edit.lua/compare/v0.2.1...v0.3.0) (2024-04-03)
+
+
+### Features
+
+* `parse_as_tbl` function to parse tables that can be looped over ([768e81f](https://github.com/vhyrro/toml-edit.lua/commit/768e81f746d1f59c4c178dd1223df22b6602dcf4))
+
 ## [0.2.1](https://github.com/vhyrro/toml-edit.lua/compare/v0.2.0...v0.2.1) (2024-03-04)
 
 
