@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.2...v0.3.3) (2024-04-04)
+
+
+### Bug Fixes
+
+* **luarocks:** add rockspec template ([f022e57](https://github.com/vhyrro/toml-edit.lua/commit/f022e57c308876231cc8db1a812171b521ea813f))
+
 ## [0.3.2](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.1...v0.3.2) (2024-04-04)
 
 
