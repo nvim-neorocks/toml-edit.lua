@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.1...v0.3.2) (2024-04-04)
+
+
+### Bug Fixes
+
+* set package name in luarocks.yml ([ba84b6c](https://github.com/vhyrro/toml-edit.lua/commit/ba84b6c7b976d0dedcc4c7f338091320cea7a28e))
+
 ## [0.3.1](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.0...v0.3.1) (2024-04-03)
 
 
