@@ -16,6 +16,12 @@ description = {
   $license
 }
 
+dependencies = $dependencies
+
+build_dependencies = {
+  'luarocks-build-rust-mlua',
+}
+
 source = {
   url = repo_url .. '/archive/' .. git_ref .. '.zip',
   dir = '$repo_name-' .. '$archive_dir_suffix',
