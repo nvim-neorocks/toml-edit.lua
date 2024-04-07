@@ -8,6 +8,7 @@
       };
       nativeCheckInputs = with luaself;
         [
+          luarocks-build-rust-mlua
           busted
         ]
         ++ oa.nativeCheckInputs;
