@@ -27,3 +27,4 @@ jobs:
           detailed_description: |
             `toml-edit` is a library to parse and edit `.toml` files as if they were lua tables, all while preserving formatting and comments.
             Based on rust's `toml-edit`.
+          template: .github/workflows/rockspec.template
