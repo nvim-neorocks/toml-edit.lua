@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.6](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.5...v0.3.6) (2024-04-07)
+
+
+### Bug Fixes
+
+* **rockspec:** add dependencies + build_dependencies ([a9d269a](https://github.com/vhyrro/toml-edit.lua/commit/a9d269ad34b07a610fa046f00c2a552a66473263))
+
 ## [0.3.5](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.4...v0.3.5) (2024-04-07)
 
 
