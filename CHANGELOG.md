@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.4](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.3...v0.3.4) (2024-04-07)
+
+
+### Reverts
+
+* don't depend on luarocks-build-rust-mlua ([b8a29c5](https://github.com/vhyrro/toml-edit.lua/commit/b8a29c53d83fc6e4622caa5cdd4e9ada86fe3cbc))
+* **luarocks:** add rockspec template ([1641c33](https://github.com/vhyrro/toml-edit.lua/commit/1641c338b5c3522d447880c38ec9606da58fb3f7))
+
 ## [0.3.3](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.2...v0.3.3) (2024-04-04)
 
 

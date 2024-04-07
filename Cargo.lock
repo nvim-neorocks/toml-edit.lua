@@ -224,7 +224,7 @@ dependencies = [
 
 [[package]]
 name = "toml-edit-lua"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "mlua",
  "serde",
