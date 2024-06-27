@@ -1,7 +1,7 @@
 use mlua::{ExternalError, Lua, LuaSerdeExt, Result, Value};
 use std::cell::RefCell;
 use std::rc::Rc;
-use toml_edit::{value, DocumentMut, ImDocument, Key};
+use toml_edit::{DocumentMut, ImDocument, Key};
 
 // TODO: Better error messages
 
@@ -247,7 +247,7 @@ pub fn toml_edit(lua: &'static Lua) -> Result<mlua::Table> {
                                         name: Some("selector".into()),
                                         cause: format!(
                                             "array '{}' does not have a value at index {}. The full path that was provided: {}",
-                                            key.to_string(),
+                                            key,
                                             num,
                                             path.to_str().unwrap()
                                         )
