@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.6...v0.4.0) (2024-06-27)
+
+
+### Features
+
+* add `parse_spanned` function ([#32](https://github.com/vhyrro/toml-edit.lua/issues/32)) ([632a479](https://github.com/vhyrro/toml-edit.lua/commit/632a47966e810ced1e752606df3883f90ec7d19e))
+
+
+### Bug Fixes
+
+* fix Darwin compilation ([086f847](https://github.com/vhyrro/toml-edit.lua/commit/086f847f63811954038748dd9a981eae057a9062))
+
 ## [0.3.6](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.5...v0.3.6) (2024-04-07)
 
 
