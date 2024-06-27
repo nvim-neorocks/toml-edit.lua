@@ -1,4 +1,5 @@
-use mlua::{ExternalError, Lua, LuaSerdeExt, Result, Value};
+use itertools::Itertools;
+use mlua::{ExternalError, Lua, LuaSerdeExt, Result, Table, Value};
 use std::cell::RefCell;
 use std::rc::Rc;
 use toml_edit::{DocumentMut, ImDocument, Key};
@@ -191,13 +192,16 @@ pub fn toml_edit(lua: &'static Lua) -> Result<mlua::Table> {
             spanned.set(
                 "span_of",
                 lua.create_function(
-                    move |lua: &Lua, (path, selector): (mlua::String, Value)| {
+                    move |lua: &Lua, (path, selector): (Table, Value)| {
                         let initial_key = Key::new("");
+                        let fullpath = path.clone().sequence_values::<String>().map(|val| val.unwrap()).join(".");
 
-                        let (key, item) = path.to_str().unwrap().split('.').try_fold(
+                        let (key, item) = path.sequence_values::<String>().try_fold(
                             (&initial_key, document.as_item()),
                             |acc: (&Key, &toml_edit::Item), next_path| {
-                                acc.1.as_table().unwrap().get_key_value(next_path).ok_or(
+                                let next_path = next_path?;
+
+                                acc.1.as_table().unwrap().get_key_value(next_path.as_str()).ok_or(
                                     mlua::Error::BadArgument {
                                         to: Some("span_of".into()),
                                         pos: 1,
@@ -205,7 +209,7 @@ pub fn toml_edit(lua: &'static Lua) -> Result<mlua::Table> {
                                         cause: format!(
                                             "key '{}' does not exist in the TOML. The full path that was provided: {}",
                                             next_path,
-                                            path.to_str().unwrap()
+                                            fullpath
                                         )
                                         .into_lua_err()
                                         .into(),
@@ -233,13 +237,13 @@ pub fn toml_edit(lua: &'static Lua) -> Result<mlua::Table> {
                                         name: Some("selector".into()),
                                         cause: format!(
                                             "value {} is not an array (required for numerical selectors)",
-                                            path.to_str().unwrap()
+                                            fullpath
                                         )
                                         .into_lua_err()
                                         .into(),
                                     }
                                 )?
-                                .get(num as usize)
+                                .get((num - 1) as usize)
                                 .ok_or(
                                     mlua::Error::BadArgument {
                                         to: Some("span_of".into()),
@@ -249,7 +253,7 @@ pub fn toml_edit(lua: &'static Lua) -> Result<mlua::Table> {
                                             "array '{}' does not have a value at index {}. The full path that was provided: {}",
                                             key,
                                             num,
-                                            path.to_str().unwrap()
+                                            fullpath
                                         )
                                         .into_lua_err()
                                         .into(),
