@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/vhyrro/toml-edit.lua/compare/v0.4.0...v0.4.1) (2024-06-27)
+
+
+### Bug Fixes
+
+* make `parse_spanned` take a table instead of a string ([fa78930](https://github.com/vhyrro/toml-edit.lua/commit/fa78930b748265949b73daa8206d092e7f43f323))
+
 ## [0.4.0](https://github.com/vhyrro/toml-edit.lua/compare/v0.3.6...v0.4.0) (2024-06-27)
 
 
