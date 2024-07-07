@@ -16,7 +16,7 @@ local toml_content = [[
 # Some comment
 "toml-edit" = "1.0.0"
 ]]
-local toml_edit = require("toml-edit")
+local toml_edit = require("toml_edit")
 local toml_tbl = toml_edit.parse(toml_content)
 toml_tbl.rocks["toml-edit"] = "2.0.0"
 print(tostring(toml_tbl))
@@ -33,7 +33,7 @@ local toml_content = [[
 [rocks]
 "toml-edit" = "1.0.0"
 ]]
-local toml_edit = require("toml-edit")
+local toml_edit = require("toml_edit")
 local lua_tbl = toml_edit.parse_as_tbl(toml_content)
 print(tostring(toml_tbl))
 -- outputs: table: 0x7ff975807668
