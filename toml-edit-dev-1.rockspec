@@ -11,12 +11,14 @@ description = {
 
 dependencies = {
     "lua >= 5.1",
-    "luarocks-build-rust-mlua",
 }
 
 test_dependencies = {
     "lua >= 5.1",
-    "luarocks-build-rust-mlua",
+}
+
+build_dependencies = {
+  "luarocks-build-rust-mlua",
 }
 
 build = {
