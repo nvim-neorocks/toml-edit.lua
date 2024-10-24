@@ -29,6 +29,16 @@ describe("parse", function()
         assert.equal("1.0.0", rock.version)
         assert.equal(true, rock.opt)
     end)
+    it("Can read from array", function()
+        local toml_content = [[
+        my_arr = ["item1", "item2", "item3"]
+        ]]
+        local result = toml_edit.parse(toml_content)
+        assert.equal("item1", result.my_arr[1])
+        assert.equal("item2", result.my_arr[2])
+        assert.equal("item3", result.my_arr[3])
+        assert.is_nil(result.my_arr[4])
+    end)
     it("Preserves inline tables", function()
         local toml_content = [[
           [rocks]
@@ -67,6 +77,27 @@ describe("parse", function()
         local rock = result.rocks.neorg
         rock.version = "2.0.0"
         local expected = toml_content:format("2.0.0")
+        assert.equal(expected, tostring(result))
+    end)
+    it("Can set value in array", function()
+        local toml_content = [[
+        my_arr = ["%s", "item2"]
+        ]]
+        local result = toml_edit.parse(toml_content)
+        result.my_arr[1] = "item1_changed"
+        local expected = toml_content:format("item1_changed")
+        assert.equal(expected, tostring(result))
+    end)
+    it("Can add value to array", function()
+        local toml_content = [[
+        my_arr = ["item1", "item2"]
+        ]]
+        local result = toml_edit.parse(toml_content)
+        result.my_arr[3] = "item3"
+        local new_toml_content = [[
+        my_arr = ["item1", "item2", "%s"]
+        ]]
+        local expected = new_toml_content:format("item3")
         assert.equal(expected, tostring(result))
     end)
     it("Can add value to table", function()
