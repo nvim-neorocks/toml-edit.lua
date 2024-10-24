@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/nvim-neorocks/toml-edit.lua/compare/v0.4.1...v0.5.0) (2024-10-24)
+
+
+### Features
+
+* Add support for toml arrays ([#38](https://github.com/nvim-neorocks/toml-edit.lua/issues/38)) ([78a2adb](https://github.com/nvim-neorocks/toml-edit.lua/commit/78a2adb103116025fb353e2b5a628b30fda77b55))
+
 ## [0.4.1](https://github.com/vhyrro/toml-edit.lua/compare/v0.4.0...v0.4.1) (2024-06-27)
 
 
