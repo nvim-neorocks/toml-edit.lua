@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/nvim-neorocks/toml-edit.lua/compare/v0.5.0...v0.6.0) (2024-10-31)
+
+
+### Features
+
+* Add support for setting/adding entire tables/arrays ([#40](https://github.com/nvim-neorocks/toml-edit.lua/issues/40)) ([caee16f](https://github.com/nvim-neorocks/toml-edit.lua/commit/caee16f01a3a09830dc5312bb84a0b5003c85a33))
+
 ## [0.5.0](https://github.com/nvim-neorocks/toml-edit.lua/compare/v0.4.1...v0.5.0) (2024-10-24)
 
 
