@@ -52,7 +52,7 @@ where
                             toml_edit::Value::Float(float) => Ok(lua.to_value(&float.value())),
                             toml_edit::Value::Boolean(bool) => Ok(lua.to_value(&bool.value())),
                             _ => Err(mlua::Error::RuntimeError(format!(
-                                "toml-edit: cannot parse {}: {} yet",
+                                "toml-edit: expected value to be a basic value type in array, got {}: {}",
                                 array_value.type_name(),
                                 array_value
                             ))),
@@ -60,7 +60,7 @@ where
                         None => Ok(Ok(Value::Nil)),
                     },
                     _ => Err(mlua::Error::RuntimeError(format!(
-                        "toml-edit: expected value to be an array type {}: {}",
+                        "toml-edit: expected value to be an array type, got {}: {}",
                         value.type_name(),
                         value
                     ))),
@@ -241,6 +241,7 @@ where
                 path.push(key.to_str()?.to_string());
 
                 let mut binding = table_newindex_document.borrow_mut();
+                let mut created_last_entry = false;
                 let entry: &mut toml_edit::Item =
                     path.clone()
                         .into_iter()
@@ -252,6 +253,7 @@ where
                             let entry = entry.as_table_like_mut().unwrap();
 
                             if entry.get_mut(next_key.as_str()).is_none() {
+                                created_last_entry = true;
                                 entry.insert(
                                     next_key.as_str(),
                                     toml_edit::Item::Table(toml_edit::Table::default()),
@@ -261,38 +263,96 @@ where
                             entry.get_mut(next_key.as_str()).unwrap()
                         });
 
-                *entry = match value {
-                    Value::Nil => toml_edit::Item::None,
-                    Value::String(str) => toml_edit::value(str.to_str()?.to_string()),
-                    Value::Number(number) => {
-                        toml_edit::value(lua.from_value::<mlua::Number>(Value::Number(number))?)
+                fn convert_lua_value_to_toml_item<'lua>(
+                    lua: &'lua Lua,
+                    value: &Value,
+                    is_parent_array: bool,
+                ) -> Result<toml_edit::Item> {
+                    match value {
+                        Value::Nil => Ok(toml_edit::Item::None),
+                        Value::String(str) => Ok(toml_edit::value(str.to_str()?.to_string())),
+                        Value::Number(number) => Ok(toml_edit::value(
+                            lua.from_value::<mlua::Number>(Value::Number(*number))?,
+                        )),
+                        Value::Integer(int) => Ok(toml_edit::value(
+                            lua.from_value::<mlua::Integer>(Value::Integer(*int))?,
+                        )),
+                        Value::Boolean(bool) => Ok(toml_edit::value(*bool)),
+                        Value::Table(table) => {
+                            if is_parent_array {
+                                return Err(mlua::Error::MetaMethodTypeError {
+                                    method: "__newindex".into(),
+                                    type_name: value.type_name(),
+                                    message: Some("only basic value types allowed in lists".into()),
+                                });
+                            }
+                            // Determine if table is array by checking the keys
+                            let mut is_array = true;
+                            for table_pair in table.clone().pairs::<Value, Value>() {
+                                let (table_key, _) = table_pair?;
+                                if !table_key.is_integer() {
+                                    is_array = false;
+                                    break;
+                                }
+                            }
+                            if is_array {
+                                let mut item = toml_edit::Item::Value(toml_edit::Value::Array(
+                                    toml_edit::Array::default(),
+                                ));
+                                for array_value in table.clone().sequence_values::<Value>() {
+                                    if let Some(toml_value) = convert_lua_value_to_toml_item(
+                                        lua,
+                                        &array_value.clone()?,
+                                        true,
+                                    )?
+                                    .as_value()
+                                    {
+                                        item.as_array_mut().unwrap().push(toml_value);
+                                    }
+                                }
+                                Ok(item)
+                            } else {
+                                let mut item = toml_edit::Item::Table(toml_edit::Table::default());
+                                for table_pair in table.clone().pairs::<Value, Value>() {
+                                    let (table_key, table_value) = table_pair?;
+                                    if let Value::String(table_key_str) = table_key {
+                                        let _ = item.as_table_mut().unwrap().insert(
+                                            table_key_str.to_str()?,
+                                            convert_lua_value_to_toml_item(
+                                                lua,
+                                                &table_value,
+                                                false,
+                                            )?,
+                                        );
+                                    }
+                                }
+                                Ok(item)
+                            }
+                        }
+                        _ => {
+                            return Err(mlua::Error::MetaMethodTypeError {
+                                method: "__newindex".into(),
+                                type_name: value.type_name(),
+                                message: Some(
+                                    "provided type is not allowed in TOML document".into(),
+                                ),
+                            });
+                        }
                     }
-                    Value::Integer(int) => {
-                        toml_edit::value(lua.from_value::<mlua::Integer>(Value::Integer(int))?)
-                    }
-                    Value::Boolean(bool) => toml_edit::value(bool),
-                    Value::Table(_table) => {
-                        // Update state data within Lua
-                        // for pair in tbl.pairs() {
-                        //     let (key, value): (mlua::Value, mlua::Value) = pair?;
+                }
 
-                        //     table.set(key, value)?;
-                        // }
-
-                        // TODO: The previous invocations just updated everything, so make this now
-                        // return a table that allows access to those values.
-                        toml_edit::Item::Table(toml_edit::Table::default())
+                match convert_lua_value_to_toml_item(lua, &value, false) {
+                    Ok(item) => {
+                        *entry = item;
+                        Ok(())
                     }
-                    _ => {
-                        return Err(mlua::Error::MetaMethodTypeError {
-                            method: "__newindex".into(),
-                            type_name: value.type_name(),
-                            message: Some("provided type is not allowed in TOML document".into()),
-                        })
+                    Err(e) => {
+                        if created_last_entry {
+                            *entry = toml_edit::Item::None;
+                        }
+                        Err(e)
                     }
-                };
-
-                Ok(())
+                }
             },
         )?,
     )?;
