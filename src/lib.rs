@@ -288,11 +288,15 @@ where
                             }
                             // Determine if table is array by checking the keys
                             let mut is_array = true;
-                            for table_pair in table.clone().pairs::<Value, Value>() {
-                                let (table_key, _) = table_pair?;
-                                if !table_key.is_integer() {
-                                    is_array = false;
-                                    break;
+                            if table.is_empty() {
+                                is_array = false;
+                            } else {
+                                for table_pair in table.clone().pairs::<Value, Value>() {
+                                    let (table_key, _) = table_pair?;
+                                    if !table_key.is_integer() {
+                                        is_array = false;
+                                        break;
+                                    }
                                 }
                             }
                             if is_array {
