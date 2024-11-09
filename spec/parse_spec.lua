@@ -79,6 +79,20 @@ describe("parse", function()
         local expected = toml_content:format("2.0.0")
         assert.equal(expected, tostring(result))
     end)
+    it("Can interatively build table", function()
+        local toml_content = [[]]
+        local result = toml_edit.parse(toml_content)
+        result.rocks = {}
+        result.rocks.neorg = {}
+        result.rocks.neorg.version = "1.0.0"
+        local expected = [[
+[rocks]
+
+[rocks.neorg]
+version = "1.0.0"
+]]
+        assert.equal(expected, tostring(result))
+    end)
     it("Can add value to table", function()
         local toml_content = [[
 [rocks.neorg]
