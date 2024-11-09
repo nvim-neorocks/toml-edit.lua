@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/nvim-neorocks/toml-edit.lua/compare/v0.6.0...v0.6.1) (2024-11-09)
+
+
+### Bug Fixes
+
+* don't treat empty table assignments as arrays by default ([#44](https://github.com/nvim-neorocks/toml-edit.lua/issues/44)) ([0de0b44](https://github.com/nvim-neorocks/toml-edit.lua/commit/0de0b44b18f23d4b086b356869e858ad641c3ee3))
+
 ## [0.6.0](https://github.com/nvim-neorocks/toml-edit.lua/compare/v0.5.0...v0.6.0) (2024-10-31)
 
 
