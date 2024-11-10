@@ -1,4 +1,7 @@
-{self}: final: prev: let
+{
+  self,
+  rocks-nvim-flake,
+}: final: prev: let
   luaPackages-override = luaself: luaprev: {
     toml-edit = luaprev.toml-edit.overrideAttrs (oa: {
       knownRockspec = "${self}/toml-edit-dev-1.rockspec";
@@ -26,13 +29,19 @@
       doCheck = true;
     });
   };
-  lua5_1 = prev.lua5_1.override {
+  luajit = prev.luajit.override {
     packageOverrides = luaPackages-override;
   };
-  lua51Packages = final.lua5_1.pkgs;
+  luajitPackages = final.luajit.pkgs;
 in {
   inherit
-    lua5_1
-    lua51Packages
+    luajit
+    luajitPackages
     ;
+
+  rocks-nvim-check = rocks-nvim-flake.checks.${final.system}.integration-nightly.overrideAttrs (oa: {
+    propagatedBuildInputs =
+      final.lib.filter (pkg: pkg.pname != "toml-edit") oa.propagatedBuildInputs
+      ++ [final.luajitPackages.toml-edit];
+  });
 }

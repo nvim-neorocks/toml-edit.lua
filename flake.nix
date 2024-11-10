@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    rocks-nvim-flake.url = "github:nvim-neorocks/rocks.nvim";
     flake-parts.url = "github:hercules-ci/flake-parts";
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
@@ -13,11 +14,12 @@
   outputs = inputs @ {
     self,
     nixpkgs,
+    rocks-nvim-flake,
     flake-parts,
     pre-commit-hooks,
     ...
   }: let
-    overlay = import ./nix/overlay.nix {inherit self;};
+    overlay = import ./nix/overlay.nix {inherit self rocks-nvim-flake;};
   in
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = [
@@ -74,6 +76,7 @@
         checks = {
           inherit pre-commit-check;
           inherit (pkgs.lua51Packages) toml-edit;
+          inherit (pkgs) rocks-nvim-check;
         };
       };
       flake = {
