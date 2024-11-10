@@ -1,5 +1,10 @@
 {
-  description = "devShell for Rust projects";
+  description = "Edit toml files while preserving whitespace and formatting from Lua";
+
+  nixConfig = {
+    extra-substituters = "https://neorocks.cachix.org";
+    extra-trusted-public-keys = "neorocks.cachix.org-1:WqMESxmVTOJX7qoBC54TwrMMoVI1xAM+7yFin8NRfwk=";
+  };
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
