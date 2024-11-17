@@ -53,9 +53,9 @@
           };
         };
       in {
-        packages.default = pkgs.lua51Packages.toml-edit;
+        packages.default = pkgs.luajitPackages.toml-edit;
 
-        devShells.default = pkgs.lua51Packages.toml-edit.overrideAttrs (oa: {
+        devShells.default = pkgs.luajitPackages.toml-edit.overrideAttrs (oa: {
           name = "toml-edit devShell";
 
           buildInputs =
@@ -80,7 +80,7 @@
 
         checks = {
           inherit pre-commit-check;
-          inherit (pkgs.lua51Packages) toml-edit;
+          inherit (pkgs.luajitPackages) toml-edit;
           inherit (pkgs) rocks-nvim-check;
         };
       };
