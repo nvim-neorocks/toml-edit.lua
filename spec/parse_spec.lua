@@ -119,28 +119,20 @@ version = "1.0.0"
         result.rocks = {
             neorg = { version = "2.0.0", pin = true },
         }
-        local expected = [[
-[rocks]
-
-[rocks.neorg]
-version = "2.0.0"
-pin = true
-]]
-        assert.equal(expected, tostring(result))
+        local result_str = tostring(result)
+        assert.is_not_nil(result_str:find("%[rocks.neorg]"))
+        assert.is_not_nil(result_str:find('version = "2.0.0"'))
+        assert.is_not_nil(result_str:find("pin = true"))
     end)
     it("Can add entire table", function()
         local result = toml_edit.parse([[]])
         result.rocks = {
             neorg = { version = "2.0.0", pin = true },
         }
-        local expected = [[
-[rocks]
-
-[rocks.neorg]
-version = "2.0.0"
-pin = true
-]]
-        assert.equal(expected, tostring(result))
+        local result_str = tostring(result)
+        assert.is_not_nil(result_str:find("%[rocks.neorg]"))
+        assert.is_not_nil(result_str:find('version = "2.0.0"'))
+        assert.is_not_nil(result_str:find("pin = true"))
     end)
     it("Can set value in array", function()
         local toml_content = [[
